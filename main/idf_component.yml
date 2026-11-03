@@ -170,3 +170,10 @@ dependencies:
   m5stack/m5pm1: ^1.0.7
 
   cube32esp/xpowerslib: ^0.3.3
+
+  # VB6824 speech wake/audio chip for MZ39-AI board (local component, not in the registry)
+  vb6824:
+    version: "2.3.0"
+    path: boards/mz39-ai-1.54tft/components/vb6824
+    rules:
+    - if: $CONFIG{BOARD_TYPE_MZ39_AI_1_54TFT} == True

@@ -1,0 +1,17 @@
+{
+    "type": "mz39-ai-1.54tft",
+    "target": "esp32c3",
+    "builds": [
+        {
+            "name": "mz39-ai-1.54tft",
+            "sdkconfig_append": [
+                "CONFIG_ESPTOOLPY_FLASHSIZE_8MB=y",
+                "CONFIG_PARTITION_TABLE_CUSTOM_FILENAME=\"partitions/v2/8m.csv\"",
+                "CONFIG_WAKE_WORD_DISABLED=y",
+                "CONFIG_VB6824_TYPE_OPUS_16K_20MS_PCM_16K=y",
+                "CONFIG_VB6824_TYPE_PCM_16K=n",
+                "CONFIG_VB6824_SEND_USE_TASK=y"
+            ]
+        }
+    ]
+}

@@ -1,5 +1,9 @@
 tmp/
 components/
+# Exception: the vendor vb6824 component for the MZ39-AI board ships inside
+# the board directory and is committed from there (path dependency, see
+# main/idf_component.yml).
+!main/boards/mz39-ai-1.54tft/components/
 managed_components/
 build/
 dist/

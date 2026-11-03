@@ -412,6 +412,9 @@ choice BOARD_TYPE
     config BOARD_TYPE_MOVECALL_MOJI2_ESP32C5
         bool "Movecall Moji 2.0"
         depends on IDF_TARGET_ESP32C5
+    config BOARD_TYPE_MZ39_AI_1_54TFT
+        bool "MZ39-AI 1.54-inch TFT (VB6824 audio)"
+        depends on IDF_TARGET_ESP32C3
     config BOARD_TYPE_XINGZHI_ABS_2_0
         bool "Nologo Xingzhi ABS 2.0 (无名科技星智)"
         depends on IDF_TARGET_ESP32S3
