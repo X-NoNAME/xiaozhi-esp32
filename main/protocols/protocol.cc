@@ -100,8 +100,16 @@ void Protocol::SendStopListening() {
 }
 
 void Protocol::SendMcpMessage(const std::string& payload) {
-    std::string message =
-        "{\"session_id\":\"" + session_id_ + "\",\"type\":\"mcp\",\"payload\":" + payload + "}";
+    // Build the wire message with a single allocation: the MCP payload can be
+    // large and chained operator+ would peak at 3-4x its size, which aborts
+    // on boards with little heap left (std::bad_alloc -> abort).
+    std::string message;
+    message.reserve(payload.size() + session_id_.size() + 48);
+    message += "{\"session_id\":\"";
+    message += session_id_;
+    message += "\",\"type\":\"mcp\",\"payload\":";
+    message += payload;
+    message += "}";
     SendText(message);
 }
 
