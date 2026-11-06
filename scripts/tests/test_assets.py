@@ -256,6 +256,12 @@ class AssetsTest(unittest.TestCase):
             void Display::UpdateStatusBar(bool) {}
             void Display::SetPowerSaveMode(bool) {}
             void Display::SetPreviewImage(std::unique_ptr<LvglImage>) {}
+
+            // assets_png.cc is exercised by its own host test; here it is stubbed
+            // so Apply() keeps using the raw-image fallback path.
+            int AssetsPngEnsureCache(const uint8_t*, const void*) { return 0; }
+            void AssetsPngReset() {}
+            const void* AssetsPngGet(const char*) { return nullptr; }
             void EmojiCollection::AddEmoji(const std::string&, LvglImage* image) { delete image; }
             const LvglImage* EmojiCollection::GetEmojiImage(const char*) { return nullptr; }
             EmojiCollection::~EmojiCollection() = default;

@@ -30,6 +30,18 @@ private:
     lv_img_dsc_t* image_dsc_ = nullptr;
 };
 
+// Wraps a decode-free image descriptor that lives in the assets flash cache
+// (see assets_png.h). The descriptor is owned elsewhere and must outlive this
+// object (it is invalidated by AssetsPngReset when the partition is unmapped).
+class LvglFlashImage : public LvglImage {
+public:
+    explicit LvglFlashImage(const lv_img_dsc_t* dsc) : image_dsc_(dsc) {}
+    virtual const lv_img_dsc_t* image_dsc() const override { return image_dsc_; }
+
+private:
+    const lv_img_dsc_t* image_dsc_;
+};
+
 class LvglAllocatedImage : public LvglImage {
 public:
     LvglAllocatedImage(void* data, size_t size);

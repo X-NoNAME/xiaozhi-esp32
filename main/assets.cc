@@ -6,6 +6,7 @@
 #include "lvgl_theme.h"
 #if HAVE_LVGL
 #include <spi_flash_mmap.h>
+#include "assets_png.h"
 #endif
 
 #include <esp_heap_caps.h>
@@ -175,8 +176,10 @@ bool Assets::LvglStrategy::InitializePartition(Assets* assets) {
     }
 
     constexpr uint32_t kMmuPageSize = 64 * 1024;
-    uint32_t map_size = 12 + stored_len;
-    map_size = (map_size + kMmuPageSize - 1) & ~(kMmuPageSize - 1);
+    // Map the whole partition: the pack header/table/data live at the front,
+    // and the PNG emoji RGB565A8 planes converted by assets_png.cc live in the
+    // tail — LVGL draws them straight from the mapped region.
+    uint32_t map_size = assets->partition_->size;
     if (map_size > assets->partition_->size) {
         map_size = assets->partition_->size;
     }
@@ -223,10 +226,19 @@ bool Assets::LvglStrategy::InitializePartition(Assets* assets) {
                                12 + sizeof(mmap_assets_table) * stored_files + item->asset_offset)};
         assets_[item->asset_name] = asset;
     }
+
+    // Build (or validate) the PNG emoji RGB565A8 cache in the partition tail.
+    // Runs fully off-flash: zero LVGL heap, ~ a few KB RAM during conversion.
+    int png_count =
+        AssetsPngEnsureCache(reinterpret_cast<const uint8_t*>(mmap_root_), assets->partition_);
+    if (png_count > 0) {
+        ESP_LOGI(TAG, "PNG emoji cache ready with %d images", png_count);
+    }
     return checksum_valid_;
 }
 
 void Assets::LvglStrategy::UnApplyPartition(Assets* assets) {
+    AssetsPngReset();
     if (mmap_handle_ != 0) {
         esp_partition_munmap(mmap_handle_);
         mmap_handle_ = 0;
@@ -346,6 +358,14 @@ bool Assets::LvglStrategy::Apply(Assets* assets, bool refresh_display_theme) {
                 cJSON* file = cJSON_GetObjectItem(emoji, "file");
                 cJSON* eaf = cJSON_GetObjectItem(emoji, "eaf");
                 if (cJSON_IsString(name) && cJSON_IsString(file) && (NULL == eaf)) {
+                    // Preferred path: pre-converted RGB565A8 planes from the
+                    // assets partition tail (zero heap, no PNG decoding).
+                    auto flash_dsc = static_cast<const lv_img_dsc_t*>(AssetsPngGet(file->valuestring));
+                    if (flash_dsc != nullptr) {
+                        custom_emoji_collection->AddEmoji(name->valuestring,
+                                                          new LvglFlashImage(flash_dsc));
+                        continue;
+                    }
                     if (!assets->GetAssetData(file->valuestring, ptr, size)) {
                         ESP_LOGE(TAG, "Emoji %s image file %s is not found", name->valuestring,
                                  file->valuestring);
